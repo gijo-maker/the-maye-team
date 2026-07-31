@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#fef9ef">
+  <title>The Maye Team</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Home Screen -->
+    <section id="screen-home" class="screen active">
+      <div class="home-content">
+        <div class="home-logo">☀️</div>
+        <h1 class="home-title">The Maye Team</h1>
+        <p class="home-tagline">Same team. Always.</p>
+
+        <nav class="home-nav">
+          <a href="#saoirse" class="nav-card nav-card--green" data-nav="saoirse">
+            <span class="nav-card-emoji">🌿</span>
+            <span class="nav-card-name">Saoirse</span>
+            <span class="nav-card-progress" id="home-progress-saoirse">0%</span>
+          </a>
+          <a href="#orla" class="nav-card nav-card--pink" data-nav="orla">
+            <span class="nav-card-emoji">🌸</span>
+            <span class="nav-card-name">Orla</span>
+            <span class="nav-card-progress" id="home-progress-orla">0%</span>
+          </a>
+          <a href="#family" class="nav-card nav-card--family" data-nav="family">
+            <span class="nav-card-emoji">👨‍👩‍👧‍👧</span>
+            <span class="nav-card-name">Family Progress</span>
+          </a>
+        </nav>
+
+        <button class="parent-link" id="btn-parent-link" type="button">🔒 Parent Area</button>
+      </div>
+    </section>
+
+    <!-- Child Screen Template (Saoirse & Orla share structure) -->
+    <section id="screen-saoirse" class="screen screen--green">
+      <header class="screen-header">
+        <button class="back-btn" type="button" data-nav="home" aria-label="Back">←</button>
+        <div class="screen-header-text">
+          <h2>Saoirse</h2>
+          <p class="streak-display" id="streak-saoirse">🔥 0 week streak</p>
+        </div>
+      </header>
+      <div class="progress-ring-wrap">
+        <svg class="progress-ring" viewBox="0 0 120 120">
+          <circle class="progress-ring-bg" cx="60" cy="60" r="52"/>
+          <circle class="progress-ring-fill" id="ring-saoirse" cx="60" cy="60" r="52"/>
+        </svg>
+        <span class="progress-percent" id="percent-saoirse">0%</span>
+      </div>
+      <div class="tasks-list" id="tasks-saoirse"></div>
+    </section>
+
+    <section id="screen-orla" class="screen screen--pink">
+      <header class="screen-header">
+        <button class="back-btn" type="button" data-nav="home" aria-label="Back">←</button>
+        <div class="screen-header-text">
+          <h2>Orla</h2>
+          <p class="streak-display" id="streak-orla">🔥 0 week streak</p>
+        </div>
+      </header>
+      <div class="progress-ring-wrap">
+        <svg class="progress-ring" viewBox="0 0 120 120">
+          <circle class="progress-ring-bg" cx="60" cy="60" r="52"/>
+          <circle class="progress-ring-fill" id="ring-orla" cx="60" cy="60" r="52"/>
+        </svg>
+        <span class="progress-percent" id="percent-orla">0%</span>
+      </div>
+      <div class="tasks-list" id="tasks-orla"></div>
+    </section>
+
+    <!-- Family Progress -->
+    <section id="screen-family" class="screen">
+      <header class="screen-header screen-header--plain">
+        <button class="back-btn" type="button" data-nav="home" aria-label="Back">←</button>
+        <h2>Family Progress</h2>
+      </header>
+      <div class="family-content">
+        <p class="family-subtitle">Cheering each other on! 🎉</p>
+        <div class="family-cards">
+          <div class="family-card family-card--green">
+            <div class="family-card-header">
+              <span>🌿 Saoirse</span>
+              <span id="family-percent-saoirse">0%</span>
+            </div>
+            <div class="family-bar">
+              <div class="family-bar-fill" id="family-bar-saoirse"></div>
+            </div>
+            <p class="family-streak" id="family-streak-saoirse">🔥 0 week streak</p>
+          </div>
+          <div class="family-card family-card--pink">
+            <div class="family-card-header">
+              <span>🌸 Orla</span>
+              <span id="family-percent-orla">0%</span>
+            </div>
+            <div class="family-bar">
+              <div class="family-bar-fill" id="family-bar-orla"></div>
+            </div>
+            <p class="family-streak" id="family-streak-orla">🔥 0 week streak</p>
+          </div>
+        </div>
+        <div class="family-combined">
+          <p class="family-combined-label">Team Total</p>
+          <p class="family-combined-value" id="family-combined">0%</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Parent Area -->
+    <section id="screen-parent" class="screen">
+      <header class="screen-header screen-header--plain">
+        <button class="back-btn" type="button" data-nav="home" aria-label="Back">←</button>
+        <h2>Parent Area</h2>
+      </header>
+
+      <!-- PIN Gate -->
+      <div id="pin-gate" class="pin-gate">
+        <p class="pin-label">Enter PIN</p>
+        <div class="pin-dots" id="pin-dots">
+          <span></span><span></span><span></span><span></span>
+        </div>
+        <div class="pin-pad" id="pin-pad">
+          <button type="button" data-digit="1">1</button>
+          <button type="button" data-digit="2">2</button>
+          <button type="button" data-digit="3">3</button>
+          <button type="button" data-digit="4">4</button>
+          <button type="button" data-digit="5">5</button>
+          <button type="button" data-digit="6">6</button>
+          <button type="button" data-digit="7">7</button>
+          <button type="button" data-digit="8">8</button>
+          <button type="button" data-digit="9">9</button>
+          <button type="button" data-digit="clear" class="pin-action">⌫</button>
+          <button type="button" data-digit="0">0</button>
+          <button type="button" data-digit="enter" class="pin-action pin-enter">✓</button>
+        </div>
+        <p class="pin-error" id="pin-error"></p>
+      </div>
+
+      <!-- Parent Dashboard -->
+      <div id="parent-dashboard" class="parent-dashboard hidden">
+        <div class="parent-info">
+          <p>Week started: <strong id="week-start-display">—</strong></p>
+        </div>
+        <div class="parent-stats">
+          <div class="parent-stat">
+            <span>Saoirse</span>
+            <span id="parent-percent-saoirse">0%</span>
+          </div>
+          <div class="parent-stat">
+            <span>Orla</span>
+            <span id="parent-percent-orla">0%</span>
+          </div>
+        </div>
+        <button class="btn-reset" id="btn-weekly-reset" type="button">
+          🔄 Sunday Weekly Reset
+        </button>
+        <p class="reset-hint">Resets all tasks and updates streaks for completed weeks.</p>
+        <hr class="parent-divider">
+        <label class="pin-change-label">
+          Change PIN
+          <input type="password" id="new-pin" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="New 4-digit PIN">
+        </label>
+        <button class="btn-secondary" id="btn-change-pin" type="button">Save New PIN</button>
+      </div>
+    </section>
+
+    <!-- Celebration Overlay -->
+    <div id="celebration" class="celebration hidden">
+      <div class="celebration-content">
+        <span class="celebration-emoji">🎉</span>
+        <h2>Amazing!</h2>
+        <p id="celebration-text">You completed all your tasks!</p>
+        <button class="btn-celebration" id="btn-celebration-close" type="button">Yay!</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
