@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="theme-color" content="#fef9ef">
-  <title>The Maye Team</title>
+  <title>The Maye Team v1.1</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -47,7 +47,8 @@
       <header class="screen-header">
         <button class="back-btn" type="button" data-nav="home" aria-label="Back">←</button>
         <div class="screen-header-text">
-          <h2>Saoirse</h2>
+          <h2>Hi Saoirse 👋</h2>
+          <p class="child-mission">Let's see what you can do this week ✨</p>
           <p class="streak-display" id="streak-saoirse">🔥 0 week streak</p>
         </div>
       </header>
@@ -65,7 +66,8 @@
       <header class="screen-header">
         <button class="back-btn" type="button" data-nav="home" aria-label="Back">←</button>
         <div class="screen-header-text">
-          <h2>Orla</h2>
+          <h2>Hi Orla 👋</h2>
+          <p class="child-mission">Let's see what you can do this week ✨</p>
           <p class="streak-display" id="streak-orla">🔥 0 week streak</p>
         </div>
       </header>
@@ -166,6 +168,15 @@
         </button>
         <p class="reset-hint">Resets all tasks and updates streaks for completed weeks.</p>
         <hr class="parent-divider">
+        <div class="parent-setting">
+          <label class="toggle-setting">
+            <span>Completion sound</span>
+            <input type="checkbox" id="sound-toggle" checked>
+            <span class="toggle-slider"></span>
+          </label>
+          <p class="setting-hint">Soft ping when a task is completed</p>
+        </div>
+        <hr class="parent-divider">
         <label class="pin-change-label">
           Change PIN
           <input type="password" id="new-pin" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="New 4-digit PIN">
@@ -178,8 +189,8 @@
     <div id="celebration" class="celebration hidden">
       <div class="celebration-content">
         <span class="celebration-emoji">🎉</span>
-        <h2>Amazing!</h2>
-        <p id="celebration-text">You completed all your tasks!</p>
+        <h2 id="celebration-title">Week Complete! 🎉</h2>
+        <p id="celebration-text">You completed your Maye Team Mission! ✨</p>
         <button class="btn-celebration" id="btn-celebration-close" type="button">Yay!</button>
       </div>
     </div>

@@ -1,6 +1,19 @@
-# The Maye Team
+# The Maye Team v1.1 – Delight Update
 
 A cheerful family summer holiday tracker for iPad.
+
+*"Celebrate progress, not perfection."*
+
+This version is focused on making everyday use feel magical while keeping the app simple.
+
+## What's new in v1.1
+
+- Updated tasks: **Simply Time**, **Shower or Bath**, and **Climbing Frame**
+- Warmer child page greetings: *Hi [Name] 👋*
+- Subtle task completion animations and a gentle completion ping
+- Confetti only when the full weekly mission is complete
+- Smoother progress ring and percentage animations
+- Completion sound toggle in Parent Area (default: on)
 
 ## Features
 
@@ -9,7 +22,7 @@ A cheerful family summer holiday tracker for iPad.
 - **Family Progress** screen to see everyone's progress
 - **Parent Area** protected by a 4-digit PIN (default: `1234`)
 - **Sunday Weekly Reset** to clear tasks and update streaks
-- Confetti celebration when all weekly tasks are done
+- Weekly celebration with confetti when all tasks are done
 - Progress saved automatically in the browser
 
 ## Run locally

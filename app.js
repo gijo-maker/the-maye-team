@@ -9,9 +9,10 @@ const CHILDREN = {
     tasks: [
       { id: 'reading', label: '📖 Reading 10 minutes', count: 3 },
       { id: 'timesTables', label: '🔢 Times tables 10 minutes', count: 2 },
-      { id: 'shower', label: '🚿 Shower', count: 2 },
+      { id: 'shower', label: '🚿 Shower or Bath', count: 2 },
       { id: 'hairMask', label: '💆 Hair mask', count: 1 },
-      { id: 'simplyActivity', label: '✨ Simply activity', count: 3 },
+      { id: 'simplyTime', label: '✨ Simply Time', count: 3 },
+      { id: 'climbingFrame', label: '🧗 Climbing Frame 10 minutes', count: 2 },
     ],
   },
   orla: {
@@ -21,9 +22,10 @@ const CHILDREN = {
     tasks: [
       { id: 'reading', label: '📖 Reading 10 minutes', count: 3 },
       { id: 'numbers', label: '🔢 Numbers 10 minutes', count: 2 },
-      { id: 'shower', label: '🚿 Shower', count: 2 },
+      { id: 'shower', label: '🚿 Shower or Bath', count: 2 },
       { id: 'hairMask', label: '💆 Hair mask', count: 1 },
-      { id: 'simplyActivity', label: '✨ Simply activity', count: 3 },
+      { id: 'simplyTime', label: '✨ Simply Time', count: 3 },
+      { id: 'climbingFrame', label: '🧗 Climbing Frame 10 minutes', count: 2 },
     ],
   },
 };
@@ -41,6 +43,7 @@ function defaultState() {
   return {
     pin: '1234',
     weekStart,
+    soundEnabled: true,
     streaks: { saoirse: 0, orla: 0 },
     celebrated: { saoirse: false, orla: false },
     progress: {
@@ -50,12 +53,29 @@ function defaultState() {
   };
 }
 
+function migrateProgress(progress) {
+  const migrated = { ...progress };
+  ['saoirse', 'orla'].forEach((childId) => {
+    if (!migrated[childId]) migrated[childId] = {};
+    const p = { ...migrated[childId] };
+    if (p.simplyActivity !== undefined && p.simplyTime === undefined) {
+      p.simplyTime = p.simplyActivity;
+      delete p.simplyActivity;
+    }
+    migrated[childId] = p;
+  });
+  return migrated;
+}
+
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaultState();
-    const state = JSON.parse(raw);
-    return { ...defaultState(), ...state };
+    const saved = JSON.parse(raw);
+    const state = { ...defaultState(), ...saved };
+    state.progress = migrateProgress(state.progress);
+    if (state.soundEnabled === undefined) state.soundEnabled = true;
+    return state;
   } catch {
     return defaultState();
   }
@@ -67,8 +87,10 @@ function saveState(state) {
 
 let state = loadState();
 let currentPin = '';
-let currentScreen = 'home';
 let parentUnlocked = false;
+let audioCtx = null;
+const displayedPercent = { saoirse: 0, orla: 0, combined: 0 };
+const percentAnimations = {};
 
 function getTotalTasks(childId) {
   return CHILDREN[childId].tasks.reduce((sum, t) => sum + t.count, 0);
@@ -97,13 +119,85 @@ function formatWeekDate(isoDate) {
   return d.toLocaleDateString('en-IE', { weekday: 'long', day: 'numeric', month: 'long' });
 }
 
+function playCompletionPing() {
+  if (!state.soundEnabled) return;
+  try {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    const now = audioCtx.currentTime;
+
+    function chime(freq, start, duration, volume) {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.frequency.setValueAtTime(freq, start);
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(volume, start + 0.025);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+      osc.start(start);
+      osc.stop(start + duration);
+    }
+
+    chime(740, now, 0.18, 0.045);
+    chime(988, now + 0.1, 0.22, 0.035);
+  } catch {
+    /* audio unavailable */
+  }
+}
+
+function animatePercent(key, target, onUpdate) {
+  if (percentAnimations[key]) cancelAnimationFrame(percentAnimations[key]);
+
+  const start = displayedPercent[key] ?? 0;
+  if (start === target) {
+    onUpdate(target);
+    return;
+  }
+
+  const duration = 600;
+  const startTime = performance.now();
+
+  function frame(now) {
+    const elapsed = now - startTime;
+    const t = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - t, 3);
+    const current = Math.round(start + (target - start) * eased);
+    displayedPercent[key] = current;
+    onUpdate(current);
+    if (t < 1) {
+      percentAnimations[key] = requestAnimationFrame(frame);
+    }
+  }
+
+  percentAnimations[key] = requestAnimationFrame(frame);
+}
+
+function bumpElement(el) {
+  if (!el) return;
+  el.classList.remove('bump');
+  void el.offsetWidth;
+  el.classList.add('bump');
+  el.addEventListener('animationend', () => el.classList.remove('bump'), { once: true });
+}
+
+function pulseProgressRing(childId) {
+  const wrap = document.querySelector(`#screen-${childId} .progress-ring-wrap`);
+  if (!wrap) return;
+  wrap.classList.remove('pulse');
+  void wrap.offsetWidth;
+  wrap.classList.add('pulse');
+  wrap.addEventListener('animationend', () => wrap.classList.remove('pulse'), { once: true });
+}
+
 function navigateTo(screen) {
   document.querySelectorAll('.screen').forEach((el) => el.classList.remove('active'));
   const target = document.getElementById(`screen-${screen}`);
-  if (target) {
-    target.classList.add('active');
-    currentScreen = screen;
-  }
+  if (target) target.classList.add('active');
 
   if (screen === 'parent') {
     parentUnlocked = false;
@@ -117,15 +211,25 @@ function navigateTo(screen) {
   renderAll();
 }
 
-function updateProgressRing(childId) {
+function updateProgressRing(childId, animate = true) {
   const percent = getPercent(childId);
   const ring = document.getElementById(`ring-${childId}`);
-  if (ring) {
-    const offset = RING_CIRCUMFERENCE - (percent / 100) * RING_CIRCUMFERENCE;
-    ring.style.strokeDashoffset = offset;
-  }
   const percentEl = document.getElementById(`percent-${childId}`);
-  if (percentEl) percentEl.textContent = `${percent}%`;
+
+  const applyRing = (value) => {
+    if (ring) {
+      const offset = RING_CIRCUMFERENCE - (value / 100) * RING_CIRCUMFERENCE;
+      ring.style.strokeDashoffset = offset;
+    }
+    if (percentEl) percentEl.textContent = `${value}%`;
+  };
+
+  if (animate) {
+    animatePercent(childId, percent, applyRing);
+  } else {
+    displayedPercent[childId] = percent;
+    applyRing(percent);
+  }
 }
 
 function renderTasks(childId) {
@@ -139,6 +243,7 @@ function renderTasks(childId) {
     const done = progress[task.id] || 0;
     const group = document.createElement('div');
     group.className = 'task-group';
+    group.dataset.taskId = task.id;
 
     const label = document.createElement('div');
     label.className = 'task-label';
@@ -154,7 +259,7 @@ function renderTasks(childId) {
       dot.className = 'task-dot' + (i < done ? ' done' : '');
       dot.textContent = i < done ? '✓' : '';
       dot.setAttribute('aria-label', `${task.label} ${i + 1} of ${task.count}`);
-      dot.addEventListener('click', () => toggleTask(childId, task.id, i, task.count));
+      dot.addEventListener('click', () => toggleTask(childId, task.id, i, task.count, dot, group));
       dots.appendChild(dot);
     }
 
@@ -163,78 +268,90 @@ function renderTasks(childId) {
   });
 }
 
-function toggleTask(childId, taskId, index, max) {
+function toggleTask(childId, taskId, index, max, dotEl, groupEl) {
   if (!state.progress[childId]) state.progress[childId] = {};
   const current = state.progress[childId][taskId] || 0;
+  let completed = false;
 
   if (index < current) {
     state.progress[childId][taskId] = index;
   } else if (index === current && current < max) {
     state.progress[childId][taskId] = current + 1;
+    completed = true;
+  } else {
+    return;
   }
 
   saveState(state);
-  renderAll();
 
-  if (isWeekComplete(childId) && !state.celebrated[childId]) {
+  if (completed) {
+    dotEl.classList.add('done', 'just-done');
+    dotEl.textContent = '✓';
+    dotEl.addEventListener('animationend', () => dotEl.classList.remove('just-done'), { once: true });
+
+    groupEl.classList.add('celebrate');
+    groupEl.addEventListener('animationend', () => groupEl.classList.remove('celebrate'), { once: true });
+
+    playCompletionPing();
+    pulseProgressRing(childId);
+    bumpElement(document.getElementById(`percent-${childId}`));
+  } else {
+    renderTasks(childId);
+  }
+
+  updateProgressRing(childId);
+  renderStreaks();
+  renderHome();
+  renderFamily();
+  renderParent();
+
+  if (completed && isWeekComplete(childId) && !state.celebrated[childId]) {
     state.celebrated[childId] = true;
     saveState(state);
-    showCelebration(childId);
+    setTimeout(() => showCelebration(childId), 400);
   }
 }
 
 function showCelebration(childId) {
   const child = CHILDREN[childId];
+  document.getElementById('celebration-title').textContent = 'Week Complete! 🎉';
   document.getElementById('celebration-text').textContent =
-    `${child.name} completed all weekly tasks!`;
+    `${child.name}, you completed your Maye Team Mission! ✨`;
+
+  const content = document.querySelector('.celebration-content');
+  content.classList.add('celebration-special');
   document.getElementById('celebration').classList.remove('hidden');
 
+  pulseProgressRing(childId);
+  bumpElement(document.getElementById(`percent-${childId}`));
+
   const colors = childId === 'saoirse'
-    ? ['#58c47a', '#3da85e', '#fdcb6e', '#74b9ff']
-    : ['#f78fb3', '#e06b96', '#fdcb6e', '#a29bfe'];
+    ? ['#58c47a', '#3da85e', '#fdcb6e']
+    : ['#f78fb3', '#e06b96', '#fdcb6e'];
 
-  const duration = 3000;
-  const end = Date.now() + duration;
+  const burst = (opts) => confetti({ ...opts, colors, disableForReducedMotion: true });
 
-  (function frame() {
-    confetti({
-      particleCount: 4,
-      angle: 60,
-      spread: 55,
-      origin: { x: 0, y: 0.7 },
-      colors,
-    });
-    confetti({
-      particleCount: 4,
-      angle: 120,
-      spread: 55,
-      origin: { x: 1, y: 0.7 },
-      colors,
-    });
-    if (Date.now() < end) requestAnimationFrame(frame);
-  })();
+  burst({ particleCount: 40, spread: 50, origin: { x: 0.3, y: 0.55 }, startVelocity: 28, gravity: 0.9, ticks: 120 });
+  burst({ particleCount: 40, spread: 50, origin: { x: 0.7, y: 0.55 }, startVelocity: 28, gravity: 0.9, ticks: 120 });
 
-  confetti({
-    particleCount: 100,
-    spread: 70,
-    origin: { y: 0.6 },
-    colors,
-  });
+  setTimeout(() => {
+    burst({ particleCount: 25, spread: 60, origin: { x: 0.5, y: 0.45 }, startVelocity: 22, gravity: 0.8, ticks: 100 });
+  }, 250);
 }
 
 function hideCelebration() {
   document.getElementById('celebration').classList.add('hidden');
+  document.querySelector('.celebration-content').classList.remove('celebration-special');
 }
 
 function renderStreaks() {
   ['saoirse', 'orla'].forEach((id) => {
     const streak = state.streaks[id] || 0;
     const label = streak === 1 ? '1 week streak' : `${streak} week streak`;
-    const els = [
+    [
       document.getElementById(`streak-${id}`),
       document.getElementById(`family-streak-${id}`),
-    ];
-    els.forEach((el) => {
+    ].forEach((el) => {
       if (el) el.textContent = `🔥 ${label}`;
     });
   });
@@ -248,10 +365,10 @@ function renderHome() {
 }
 
 function renderFamily() {
-  let combined = 0;
+  let combinedTarget = 0;
   ['saoirse', 'orla'].forEach((id) => {
     const percent = getPercent(id);
-    combined += percent;
+    combinedTarget += percent;
 
     const pctEl = document.getElementById(`family-percent-${id}`);
     const barEl = document.getElementById(`family-bar-${id}`);
@@ -259,8 +376,11 @@ function renderFamily() {
     if (barEl) barEl.style.width = `${percent}%`;
   });
 
+  const combined = Math.round(combinedTarget / 2);
   const combinedEl = document.getElementById('family-combined');
-  if (combinedEl) combinedEl.textContent = `${Math.round(combined / 2)}%`;
+  animatePercent('combined', combined, (value) => {
+    if (combinedEl) combinedEl.textContent = `${value}%`;
+  });
 }
 
 function renderParent() {
@@ -271,12 +391,15 @@ function renderParent() {
     const el = document.getElementById(`parent-percent-${id}`);
     if (el) el.textContent = `${getPercent(id)}%`;
   });
+
+  const soundToggle = document.getElementById('sound-toggle');
+  if (soundToggle) soundToggle.checked = state.soundEnabled;
 }
 
 function renderAll() {
   ['saoirse', 'orla'].forEach((id) => {
     renderTasks(id);
-    updateProgressRing(id);
+    updateProgressRing(id, false);
   });
   renderStreaks();
   renderHome();
@@ -295,14 +418,16 @@ function weeklyReset() {
 
   state.weekStart = getSundayOfWeek();
   saveState(state);
+  displayedPercent.saoirse = 0;
+  displayedPercent.orla = 0;
+  displayedPercent.combined = 0;
   renderAll();
 
   alert('Weekly reset complete! Streaks updated for completed weeks. 🎉');
 }
 
 function updatePinDots() {
-  const dots = document.querySelectorAll('#pin-dots span');
-  dots.forEach((dot, i) => {
+  document.querySelectorAll('#pin-dots span').forEach((dot, i) => {
     dot.classList.toggle('filled', i < currentPin.length);
   });
 }
@@ -334,10 +459,7 @@ function handlePinDigit(digit) {
   }
   updatePinDots();
   document.getElementById('pin-error').textContent = '';
-
-  if (currentPin.length === 4) {
-    setTimeout(tryPin, 200);
-  }
+  if (currentPin.length === 4) setTimeout(tryPin, 200);
 }
 
 function changePin() {
@@ -388,6 +510,11 @@ function initParent() {
   });
 
   document.getElementById('btn-change-pin').addEventListener('click', changePin);
+
+  document.getElementById('sound-toggle').addEventListener('change', (e) => {
+    state.soundEnabled = e.target.checked;
+    saveState(state);
+  });
 }
 
 function initCelebration() {
