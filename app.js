@@ -37,36 +37,7 @@ function getSundayOfWeek(date = new Date()) {
   return d.toISOString().slice(0, 10);
 }
 
-function defaultState() {
-  const weekStart = getSundayOfWeek();
-  return {
-    pin: '1234',
-    weekStart,
-    soundEnabled: true,
-    streaks: { saoirse: 0, orla: 0 },
-    celebrated: { saoirse: false, orla: false },
-    progress: {
-      saoirse: {},
-      orla: {},
-    },
-  };
-}
-
-function migrateProgress(progress) {
-  const migrated = { ...progress };
-  ['saoirse', 'orla'].forEach((childId) => {
-    if (!migrated[childId]) migrated[childId] = {};
-    const p = { ...migrated[childId] };
-    if (p.simplyActivity !== undefined && p.simplyTime === undefined) {
-      p.simplyTime = p.simplyActivity;
-      delete p.simplyActivity;
-    }
-    migrated[childId] = p;
-  });
-  return migrated;
-}
-
-let state = MayeStorage.loadState(defaultState, migrateProgress);
+let state;
 let currentPin = '';
 let parentUnlocked = false;
 let audioCtx = null;
@@ -74,7 +45,7 @@ const displayedPercent = { saoirse: 0, orla: 0, combined: 0 };
 const percentAnimations = {};
 
 function persistState() {
-  MayeStorage.saveState(state);
+  MayeStorage.persistState(state);
 }
 
 function getTotalTasks(childId) {
@@ -506,7 +477,8 @@ function initCelebration() {
   document.getElementById('btn-celebration-close').addEventListener('click', hideCelebration);
 }
 
-function init() {
+function startApp() {
+  state = MayeStorage.loadState();
   initNavigation();
   initPinPad();
   initParent();
@@ -514,4 +486,13 @@ function init() {
   renderAll();
 }
 
-init();
+window.MayeApp = {
+  startApp,
+  getState() {
+    return state;
+  },
+  applySyncState(newState) {
+    state = newState;
+    renderAll();
+  },
+};

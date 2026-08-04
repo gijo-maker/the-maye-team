@@ -14,12 +14,32 @@
 </head>
 <body>
   <div id="app">
+    <div id="sync-status" class="sync-status" aria-live="polite">Saved</div>
+
     <!-- Home Screen -->
     <section id="screen-home" class="screen active">
       <div class="home-content">
         <div class="home-logo">☀️</div>
         <h1 class="home-title">The Maye Team</h1>
         <p class="home-tagline">Same team. Always.</p>
+
+        <div id="auth-panel" class="auth-panel hidden">
+          <h3 class="auth-panel-title">Sync across devices</h3>
+          <p class="auth-panel-subtitle">Sign in with your family account to share progress between iPads.</p>
+          <form id="auth-form">
+            <label class="auth-label">
+              Email
+              <input type="email" id="auth-email" autocomplete="username" required>
+            </label>
+            <label class="auth-label">
+              Password
+              <input type="password" id="auth-password" autocomplete="current-password" required>
+            </label>
+            <p class="auth-error" id="auth-error"></p>
+            <button type="submit" class="btn-auth-primary" id="auth-sign-in">Sign In</button>
+            <button type="button" class="btn-auth-secondary" id="auth-create-account">Create Family Account</button>
+          </form>
+        </div>
 
         <nav class="home-nav">
           <a href="#saoirse" class="nav-card nav-card--green" data-nav="saoirse">
@@ -198,6 +218,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
   <script src="storage.js"></script>
+  <script src="state-model.js"></script>
   <script src="app.js"></script>
+  <script type="module" src="bootstrap.js"></script>
 </body>
 </html>
