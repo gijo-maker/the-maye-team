@@ -73,6 +73,10 @@ let audioCtx = null;
 const displayedPercent = { saoirse: 0, orla: 0, combined: 0 };
 const percentAnimations = {};
 
+function persistState() {
+  MayeStorage.saveState(state);
+}
+
 function getTotalTasks(childId) {
   return CHILDREN[childId].tasks.reduce((sum, t) => sum + t.count, 0);
 }
@@ -263,7 +267,7 @@ function toggleTask(childId, taskId, index, max, dotEl, groupEl) {
     return;
   }
 
-  MayeStorage.saveState(state);
+  persistState();
 
   if (completed) {
     dotEl.classList.add('done', 'just-done');
@@ -288,7 +292,7 @@ function toggleTask(childId, taskId, index, max, dotEl, groupEl) {
 
   if (completed && isWeekComplete(childId) && !state.celebrated[childId]) {
     state.celebrated[childId] = true;
-    MayeStorage.saveState(state);
+    persistState();
     setTimeout(() => showCelebration(childId), 400);
   }
 }
@@ -398,7 +402,7 @@ function weeklyReset() {
   });
 
   state.weekStart = getSundayOfWeek();
-  MayeStorage.saveState(state);
+  persistState();
   displayedPercent.saoirse = 0;
   displayedPercent.orla = 0;
   displayedPercent.combined = 0;
@@ -451,7 +455,7 @@ function changePin() {
     return;
   }
   state.pin = newPin;
-  MayeStorage.saveState(state);
+  persistState();
   input.value = '';
   alert('PIN updated successfully!');
 }
@@ -494,7 +498,7 @@ function initParent() {
 
   document.getElementById('sound-toggle').addEventListener('change', (e) => {
     state.soundEnabled = e.target.checked;
-    MayeStorage.saveState(state);
+    persistState();
   });
 }
 
