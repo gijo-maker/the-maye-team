@@ -1,4 +1,3 @@
-const STORAGE_KEY = 'maye-team-data';
 const RING_CIRCUMFERENCE = 2 * Math.PI * 52;
 
 const CHILDREN = {
@@ -67,25 +66,7 @@ function migrateProgress(progress) {
   return migrated;
 }
 
-function loadState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return defaultState();
-    const saved = JSON.parse(raw);
-    const state = { ...defaultState(), ...saved };
-    state.progress = migrateProgress(state.progress);
-    if (state.soundEnabled === undefined) state.soundEnabled = true;
-    return state;
-  } catch {
-    return defaultState();
-  }
-}
-
-function saveState(state) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
-
-let state = loadState();
+let state = MayeStorage.loadState(defaultState, migrateProgress);
 let currentPin = '';
 let parentUnlocked = false;
 let audioCtx = null;
@@ -282,7 +263,7 @@ function toggleTask(childId, taskId, index, max, dotEl, groupEl) {
     return;
   }
 
-  saveState(state);
+  MayeStorage.saveState(state);
 
   if (completed) {
     dotEl.classList.add('done', 'just-done');
@@ -307,7 +288,7 @@ function toggleTask(childId, taskId, index, max, dotEl, groupEl) {
 
   if (completed && isWeekComplete(childId) && !state.celebrated[childId]) {
     state.celebrated[childId] = true;
-    saveState(state);
+    MayeStorage.saveState(state);
     setTimeout(() => showCelebration(childId), 400);
   }
 }
@@ -417,7 +398,7 @@ function weeklyReset() {
   });
 
   state.weekStart = getSundayOfWeek();
-  saveState(state);
+  MayeStorage.saveState(state);
   displayedPercent.saoirse = 0;
   displayedPercent.orla = 0;
   displayedPercent.combined = 0;
@@ -470,7 +451,7 @@ function changePin() {
     return;
   }
   state.pin = newPin;
-  saveState(state);
+  MayeStorage.saveState(state);
   input.value = '';
   alert('PIN updated successfully!');
 }
@@ -513,7 +494,7 @@ function initParent() {
 
   document.getElementById('sound-toggle').addEventListener('change', (e) => {
     state.soundEnabled = e.target.checked;
-    saveState(state);
+    MayeStorage.saveState(state);
   });
 }
 
