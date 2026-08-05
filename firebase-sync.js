@@ -143,6 +143,10 @@ function startRealtimeListener(uid) {
 }
 
 async function pushNow(state) {
+  console.log('[Maye Debug] pushNow called', {
+    hasCurrentUser: !!currentUser,
+    applyingRemoteUpdate
+  });
   if (!currentUser || applyingRemoteUpdate) return;
 
   setSyncStatus('Syncing…');
@@ -155,6 +159,10 @@ async function pushNow(state) {
 }
 
 function schedulePush(state) {
+  console.log('[Maye Debug] schedulePush called', {
+    hasCurrentUser: !!currentUser,
+    applyingRemoteUpdate
+  });
   if (!currentUser || applyingRemoteUpdate) return;
 
   pendingPushState = state;
@@ -228,6 +236,7 @@ function wireConnectivityHandlers() {
 }
 
 async function handleSignedIn(user) {
+  console.log('[Maye Debug] handleSignedIn', user.uid);
   currentUser = user;
   showAuthPanel(false);
   setSyncStatus('Syncing…');
@@ -237,6 +246,7 @@ async function handleSignedIn(user) {
 }
 
 async function handleSignedOut() {
+  console.log('[Maye Debug] handleSignedOut');
   currentUser = null;
   listenerReady = false;
   if (unsubscribeSnapshot) {
@@ -248,6 +258,7 @@ async function handleSignedOut() {
 }
 
 export async function initFirebaseSync(appCallbacks) {
+  console.log('[Maye Debug] initFirebaseSync called');
   callbacks = appCallbacks;
   wireConnectivityHandlers();
 
@@ -270,8 +281,10 @@ export async function initFirebaseSync(appCallbacks) {
 
   setSyncStatus('Signing in…');
 
+  console.log('[Maye Debug] registering auth state listener');
   return new Promise((resolve) => {
     onAuthStateChanged(auth, async (user) => {
+      console.log('[Maye Debug] auth state:', user ? 'SIGNED IN' : 'SIGNED OUT');
       if (user) {
         await handleSignedIn(user);
       } else {

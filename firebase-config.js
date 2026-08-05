@@ -5,12 +5,12 @@
  * Do NOT put the family account password here — only the public web config.
  */
 export const firebaseConfig = {
-  apiKey: 'YOUR_API_KEY',
-  authDomain: 'YOUR_PROJECT_ID.firebaseapp.com',
-  projectId: 'YOUR_PROJECT_ID',
-  storageBucket: 'YOUR_PROJECT_ID.appspot.com',
-  messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-  appId: 'YOUR_APP_ID',
+  apiKey: 'AIzaSyBps2pIp20ZZKBsyv6fdwFuxdpnxXpE5LY',
+  authDomain: 'the-maye-team.firebaseapp.com',
+  projectId: 'the-maye-team',
+  storageBucket: 'the-maye-team.firebasestorage.app',
+  messagingSenderId: '817965795441',
+  appId: '1:817965795441:web:cf0b183bdb431581e473d0',
 };
 
 export function isFirebaseConfigured() {
